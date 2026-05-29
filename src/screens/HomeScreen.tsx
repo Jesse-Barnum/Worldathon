@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, StyleSheet, Modal, Text, TextInput, Pressable, Alert } from 'react-native';
+import { View, StyleSheet, Modal, Text, TextInput, Pressable, Alert, ScrollView } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import MapDashboard from '../components/MapDashboard';
@@ -27,7 +27,7 @@ export default function HomeScreen({ navigation }: any) {
           .from('users')
           .select('lifetime_distance_miles, lifetime_duration_seconds, journey_heading')
           .eq('id', user.id)
-          .maybeSingle();
+          .maybeSingle(); // Prevents errors on brand-new accounts
 
         let currentMiles = 0;
 
@@ -112,30 +112,37 @@ export default function HomeScreen({ navigation }: any) {
       {/* Onboarding Modal */}
       <Modal visible={showOnboarding} transparent={true} animationType="fade">
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Welcome to RunTheWorld! 🌍</Text>
-            <Text style={styles.modalBody}>
-              Are you starting your global journey from scratch, or do you have previous running miles you would like to log?
-            </Text>
+          {/* ScrollView Wrapper to catch and handle touches over the keyboard */}
+          <ScrollView 
+            contentContainerStyle={styles.modalScroll}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Welcome to RunTheWorld! 🌍</Text>
+              <Text style={styles.modalBody}>
+                Are you starting your global journey from scratch, or do you have previous running miles you would like to log?
+              </Text>
 
-            <TextInput 
-              style={styles.modalInput} 
-              placeholder="Enter previous miles (e.g. 150)" 
-              value={previousMiles} 
-              onChangeText={setPreviousMiles} 
-              keyboardType="numeric"
-            />
+              <TextInput 
+                style={styles.modalInput} 
+                placeholder="Enter previous miles (e.g. 150)" 
+                value={previousMiles} 
+                onChangeText={setPreviousMiles} 
+                keyboardType="numeric"
+              />
 
-            <View style={styles.buttonStack}>
-              <Pressable style={styles.saveButton} onPress={() => handleSaveOnboarding(false)}>
-                <Text style={styles.saveButtonText}>Log Previous Miles</Text>
-              </Pressable>
+              <View style={styles.buttonStack}>
+                <Pressable style={styles.saveButton} onPress={() => handleSaveOnboarding(false)}>
+                  <Text style={styles.saveButtonText}>Log Previous Miles</Text>
+                </Pressable>
 
-              <Pressable style={styles.freshButton} onPress={() => handleSaveOnboarding(true)}>
-                <Text style={styles.freshButtonText}>Start Fresh (0 Miles)</Text>
-              </Pressable>
+                <Pressable style={styles.freshButton} onPress={() => handleSaveOnboarding(true)}>
+                  <Text style={styles.freshButtonText}>Start Fresh (0 Miles)</Text>
+                </Pressable>
+              </View>
             </View>
-          </View>
+          </ScrollView>
         </View>
       </Modal>
     </View>
@@ -146,8 +153,9 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   
   // Modal Styles
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center' },
-  modalContent: { width: '85%', backgroundColor: '#FFF', padding: 25, borderRadius: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 5, elevation: 8 },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' },
+  modalScroll: { flexGrow: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+  modalContent: { width: '100%', maxWidth: 400, backgroundColor: '#FFF', padding: 25, borderRadius: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 5, elevation: 8 },
   modalTitle: { fontSize: 22, fontWeight: '900', marginBottom: 15, textAlign: 'center', color: '#000' },
   modalBody: { fontSize: 16, color: '#444', textAlign: 'center', marginBottom: 20, lineHeight: 22 },
   modalInput: { borderWidth: 1, borderColor: '#E0E0E0', borderRadius: 12, padding: 15, marginBottom: 20, fontSize: 18, backgroundColor: '#F8F8F8', textAlign: 'center' },
